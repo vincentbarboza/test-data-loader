@@ -6,6 +6,9 @@ export interface TestDataLoaderConfig {
 interface InternalConfig {
   dataTargets: readonly string[];
   dataPath: string;
+}
+
+interface RuntimeConfig extends InternalConfig {
   dataTarget: string;
 }
 
@@ -24,6 +27,19 @@ export function setConfig(options: TestDataLoaderConfig): void {
     );
   }
 
+  config = {
+    dataTargets: options.dataTargets,
+    dataPath: normalizeDataPath(options.dataPath),
+  };
+}
+
+export function getConfig(): RuntimeConfig {
+  if (!config) {
+    throw new Error(
+      'testDataLoader has not been configured. Call testDataLoader.config() first.',
+    );
+  }
+
   const dataTarget = process.env.dataTarget;
 
   if (!dataTarget) {
@@ -31,38 +47,27 @@ export function setConfig(options: TestDataLoaderConfig): void {
       [
         'testDataLoader: missing data target.',
         '',
-        `Allowed values: ${options.dataTargets.join(', ')}`,
+        `Allowed values: ${config.dataTargets.join(', ')}`,
         '',
-        `Example: dataTarget=${options.dataTargets[0]} npx playwright test`,
+        `Example: dataTarget=${config.dataTargets[0]} npx playwright test`,
       ].join('\n'),
     );
   }
 
-  if (!options.dataTargets.includes(dataTarget)) {
+  if (!config.dataTargets.includes(dataTarget)) {
     throw new Error(
       [
         `testDataLoader: invalid data target "${dataTarget}".`,
         '',
-        `Allowed values: ${options.dataTargets.join(', ')}`,
+        `Allowed values: ${config.dataTargets.join(', ')}`,
       ].join('\n'),
     );
   }
 
-  config = {
-    dataTargets: options.dataTargets,
-    dataPath: normalizeDataPath(options.dataPath),
+  return {
+    ...config,
     dataTarget,
   };
-}
-
-export function getConfig(): InternalConfig {
-  if (!config) {
-    throw new Error(
-      'testDataLoader has not been configured. Call testDataLoader.config() first.',
-    );
-  }
-
-  return config;
 }
 
 function normalizeDataPath(dataPath: string): string {

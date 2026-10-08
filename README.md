@@ -59,7 +59,7 @@ In Windows PowerShell:
 $env:dataTarget='targetA'; npx playwright test
 ```
 
-Use another configured value, such as `targetB`, to load its matching fixtures. An error is thrown if `dataTarget` is missing or is not one of the configured values.
+Use another configured value, such as `targetB`, to load its matching fixtures. The target is validated when a fixture is loaded, so tools can read `playwright.config.ts` without `dataTarget` set. An error is still thrown if a test tries to load a fixture while `dataTarget` is missing or is not one of the configured values.
 
 ## Fixture structure and loading
 
