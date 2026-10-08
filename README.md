@@ -1,139 +1,126 @@
 # Test Data Loader
 
-A small library for loading TypeScript test fixtures from a configured directory, dynamically selecting the data set based on the runtime environment.
+A small library for loading TypeScript test fixtures from a configured directory and selecting data based on the runtime environment.
 
-It lets you separate test data by `dataTarget` (for example, `unit`, `integration`, or `e2e`) and automatically find the matching file in your project directory structure.
+Use `dataTarget` to keep different sets of test data in separate files and load the matching set when running your tests.
 
 ## Features
 
 - Loads test data from a configured directory
 - Supports multiple targets through `dataTargets`
-- Automatically selects a file that matches the `dataTarget` value
-- Organizes fixtures by route or context, close to the test code
-- Works with TypeScript/Node modules that use a default export
+- Selects a fixture based on the `dataTarget` environment variable
+- Organizes fixtures by feature or test context
+- Supports default exports and direct CommonJS exports
 
 ## Requirements
 
 - Node.js 18+
 - A test runner or TypeScript runtime setup that can load `.ts` fixture files with `require()`
-- TypeScript and `@types/node` are needed to build this repository locally
 
 ## Installation
 
-Add the GitHub dependency to the consuming project's `package.json`:
+Add the GitHub dependency to your project's `package.json`:
 
 ```json
 {
-  "dependencies": {
+  "devDependencies": {
     "@vincent/test-data-loader": "git+https://github.com/vincentbarboza/test-data-loader.git#main"
   }
 }
 ```
 
-Then run `npm install`. The `prepare` script builds the library during installation, so the `dist` directory does not need to be committed to Git. For reproducible installations, replace `main` with a tag or a specific commit hash.
+Then run `npm install`. The library is built automatically during installation, so no manual build step is required. For reproducible installations, replace `main` with a tag or a specific commit hash.
 
-To work on this repository locally, install the dependencies and build the project:
+## Playwright configuration
 
-```bash
-npm install
-npm run build
-```
-
-## Configuration
-
-Before loading data, call `config()` with the allowed `dataTargets` and the base path for your test data files.
+Configure the loader in `playwright.config.ts` before your tests import fixtures. Use target names that make sense for your project:
 
 ```ts
+import { defineConfig } from '@playwright/test';
 import testDataLoader from '@vincent/test-data-loader';
 
 testDataLoader.config({
-  dataTargets: ['unit', 'integration'],
+  dataTargets: ['targetA', 'targetB'],
   dataPath: './test-data',
 });
+
+export default defineConfig({});
 ```
 
-### Environment variable
-
-The library reads the `dataTarget` environment variable:
+The library reads the `dataTarget` environment variable. Run Playwright with the desired target:
 
 ```bash
-dataTarget=unit npx jest
+dataTarget=targetA npx playwright test
 ```
 
-Or, in Windows PowerShell:
+In Windows PowerShell:
 
 ```powershell
-$env:dataTarget = 'unit'
-npx jest
+$env:dataTarget='targetA'; npx playwright test
 ```
 
-An error is thrown if `dataTarget` is missing or is not one of the allowed values.
+Use another configured value, such as `targetB`, to load its matching fixtures. An error is thrown if `dataTarget` is missing or is not one of the configured values.
 
-## Expected directory structure
+## Fixture structure and loading
 
-The configured `dataPath` is used as the root directory. The loader accepts a path that starts with `/` and looks for the corresponding file under that root.
+The configured `dataPath` is used as the root directory. The path passed to `testDataLoader()` starts with `/` and identifies a directory under that root. The loader looks in that directory for exactly one filename ending in `.<dataTarget>.ts`.
 
 For example:
 
 ```text
 project/
 ├── test-data/
-│   └── users/
-│       └── list/
-│           ├── data.unit.ts
-│           └── data.integration.ts
-├── src/
-│   └── users.spec.ts
+│   └── search/
+│       └── expectedData/
+│           ├── fixture.targetA.ts
+│           └── fixture.targetB.ts
+├── tests/
+│   └── search.spec.ts
+├── playwright.config.ts
 └── package.json
 ```
 
-With this configuration:
+With `dataTarget=targetA`, this call:
 
 ```ts
-testDataLoader.config({
-  dataTargets: ['unit', 'integration'],
-  dataPath: './test-data',
-});
+const searchData = testDataLoader('/search/expectedData');
 ```
 
-And this environment variable:
+looks in `./test-data/search/expectedData/` and loads `fixture.targetA.ts`.
 
-```bash
-dataTarget=integration
-```
-
-The following call:
+Fixture files can default-export objects, arrays, or simple values:
 
 ```ts
-const users = testDataLoader('/users/list');
+export default {
+  query: 'example search',
+  expectedResult: 'Example result',
+};
 ```
 
-will search in:
+## Complete Playwright example
 
-```text
-./test-data/users/list/
-```
-
-and load the matching file, `data.integration.ts`.
-
-## Example data file
+This example shows how to load a target-specific fixture and use its values in a Playwright test. Adapt the page URL and selectors to your application:
 
 ```ts
-export default [
-  { id: 1, name: 'Alice' },
-  { id: 2, name: 'Bob' },
-];
-```
+import { expect, test } from '@playwright/test';
+import testDataLoader from '@vincent/test-data-loader';
 
-The loader also supports a default export of an object or a simple value:
-
-```ts
-const data = {
-  total: 2,
-  items: ['alpha', 'beta'],
+type SearchTestData = {
+  query: string;
+  expectedResult: string;
 };
 
-export default data;
+const searchData = testDataLoader<SearchTestData>('/search/expectedData');
+
+test('shows the expected search result', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('searchbox').fill(searchData.query);
+  await page.getByRole('button', { name: 'Search' }).click();
+
+  await expect(
+    page.getByRole('link', { name: searchData.expectedResult }),
+  ).toBeVisible();
+});
 ```
 
 ## Important rules
@@ -141,32 +128,9 @@ export default data;
 - The path passed to `testDataLoader()` must start with `/`
 - The path must not contain `..`
 - The target directory must exist
-- Exactly one file ending in `.<dataTarget>.ts` must be present in the target directory
+- Each configured `dataTarget` should contain one fixture per target
 - Fixture files can use `export default`; CommonJS modules that export the value directly are also supported
-
-## Complete example
-
-```ts
-import testDataLoader from '@vincent/test-data-loader';
-
-testDataLoader.config({
-  dataTargets: ['unit', 'integration'],
-  dataPath: './test-data',
-});
-
-const userData = testDataLoader('/users/profile');
-
-console.log(userData);
-```
-
-## Project scripts
-
-Build the project with:
-
-```bash
-npm run build
-```
 
 ## About
 
-This project provides a lightweight way to keep environment-specific test data in dedicated TypeScript fixture files, instead of hardcoding fixtures directly in tests.
+Test Data Loader provides a lightweight way to keep target-specific test data in dedicated TypeScript fixture files instead of hardcoding fixtures directly in tests.
