@@ -1,6 +1,7 @@
 {
   "name": "@vincent/test-data-loader",
   "version": "0.1.0",
+  "author": "Vincent Barboza (https://github.com/vincentbarboza)",
   "private": true,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
