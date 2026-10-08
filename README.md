@@ -29,7 +29,7 @@ Add the GitHub dependency to your project's `package.json`:
 }
 ```
 
-Then run `npm install`. The library is built automatically during installation, so no manual build step is required. For reproducible installations, replace `main` with a tag or a specific commit hash.
+Then run `npm install`. The library is built automatically during installation and is ready to use without a separate build step. For reproducible installations, replace `main` with a tag or a specific commit hash.
 
 ## Playwright configuration
 
