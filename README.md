@@ -59,6 +59,13 @@ In Windows PowerShell:
 $env:dataTarget='targetA'; npx playwright test
 ```
 
+The loader also accepts the uppercase form `DATA_TARGET` and a CLI argument form when the environment is not exposed directly:
+
+```bash
+DATA_TARGET=targetA npx playwright test
+npx playwright test --dataTarget=targetA
+```
+
 Use another configured value, such as `targetB`, to load its matching fixtures. The target is validated when a fixture is loaded, so tools can read `playwright.config.ts` without `dataTarget` set. An error is still thrown if a test tries to load a fixture while `dataTarget` is missing or is not one of the configured values.
 
 ## Fixture structure and loading
