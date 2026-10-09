@@ -66,7 +66,7 @@ DATA_TARGET=targetA npx playwright test
 npx playwright test --dataTarget=targetA
 ```
 
-Use another configured value, such as `targetB`, to load its matching fixtures. The target is validated when a fixture is loaded, so tools can read `playwright.config.ts` without `dataTarget` set. An error is still thrown if a test tries to load a fixture while `dataTarget` is missing or is not one of the configured values.
+Use another configured value, such as `targetB`, to load its matching fixtures. When Playwright is only listing tests with `--list` and no target was provided, the loader uses the first configured target so test files can be discovered without an error. This means test definitions that depend on fixture values during discovery use that first target. During normal test execution, a missing or invalid `dataTarget` still throws an error when a fixture is loaded.
 
 ## Fixture structure and loading
 

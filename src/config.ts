@@ -40,7 +40,9 @@ export function getConfig(): RuntimeConfig {
     );
   }
 
-  const dataTarget = resolveDataTarget();
+  const dataTarget =
+    resolveDataTarget() ??
+    (isPlaywrightListMode() ? config.dataTargets[0] : undefined);
 
   if (!dataTarget) {
     throw new Error(
@@ -123,6 +125,10 @@ function resolveDataTarget(): string | undefined {
   }
 
   return undefined;
+}
+
+function isPlaywrightListMode(): boolean {
+  return process.argv.includes('--list');
 }
 
 function normalizeDataPath(dataPath: string): string {
