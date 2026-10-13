@@ -6,9 +6,6 @@ export interface TestDataLoaderConfig {
 interface InternalConfig {
   dataTargets: readonly string[];
   dataPath: string;
-}
-
-interface RuntimeConfig extends InternalConfig {
   dataTarget: string;
 }
 
@@ -27,19 +24,6 @@ export function setConfig(options: TestDataLoaderConfig): void {
     );
   }
 
-  config = {
-    dataTargets: options.dataTargets,
-    dataPath: normalizeDataPath(options.dataPath),
-  };
-}
-
-export function getConfig(): RuntimeConfig {
-  if (!config) {
-    throw new Error(
-      'testDataLoader has not been configured. Call testDataLoader.config() first.',
-    );
-  }
-
   const dataTarget = process.env.dataTarget?.trim();
 
   if (!dataTarget) {
@@ -47,27 +31,52 @@ export function getConfig(): RuntimeConfig {
       [
         'testDataLoader: missing data target.',
         '',
-        `Allowed values: ${config.dataTargets.join(', ')}`,
-        '',
-        'Set the dataTarget environment variable before loading test data.',
+        ...formatDataTargetHelp(options.dataTargets),
       ].join('\n'),
     );
   }
 
-  if (!config.dataTargets.includes(dataTarget)) {
+  if (!options.dataTargets.includes(dataTarget)) {
     throw new Error(
       [
-        `testDataLoader: invalid data target "${dataTarget}".`,
+        `testDataLoader: invalid data target "${dataTarget}"`,
         '',
-        `Allowed values: ${config.dataTargets.join(', ')}`,
+        ...formatDataTargetHelp(options.dataTargets),
       ].join('\n'),
     );
   }
 
-  return {
-    ...config,
+  config = {
+    dataTargets: options.dataTargets,
+    dataPath: normalizeDataPath(options.dataPath),
     dataTarget,
   };
+}
+
+export function getConfig(): InternalConfig {
+  if (!config) {
+    throw new Error(
+      'testDataLoader has not been configured. Call testDataLoader.config() first.',
+    );
+  }
+
+  return config;
+}
+
+function formatDataTargetHelp(dataTargets: readonly string[]): string[] {
+  const defaultTarget = dataTargets[0];
+
+  return [
+    `Allowed values: [${dataTargets.map(target => `'${target}'`).join(', ')}]`,
+    '',
+    'Set dataTarget to one of the allowed values before loading test data.',
+    'Bash:',
+    `dataTarget=${defaultTarget} npm test`,
+    '',
+    'PowerShell:',
+    `$env:dataTarget='${defaultTarget}'; npm test`,
+    '',
+  ];
 }
 
 function normalizeDataPath(dataPath: string): string {

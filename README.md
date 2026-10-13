@@ -47,7 +47,7 @@ testDataLoader.config({
 export default defineConfig({});
 ```
 
-The library reads the `dataTarget` environment variable. Run Playwright with the desired target:
+The loader validates `dataTarget` as soon as `testDataLoader.config()` is called. Run Playwright with the desired target:
 
 ```bash
 dataTarget=targetA npx playwright test
@@ -59,7 +59,7 @@ In Windows PowerShell:
 $env:dataTarget='targetA'; npx playwright test
 ```
 
-Use another configured value, such as `targetB`, to load its matching fixtures. The loader reads `process.env.dataTarget` when a fixture is requested and throws an error if the value is missing or is not one of the configured targets. This behavior is independent of the test runner.
+Use another configured value, such as `targetB`, to load its matching fixtures. The loader reads `process.env.dataTarget` and throws if the value is missing or is not one of the configured targets. The selected target is then used when fixtures are loaded. This behavior is independent of the test runner.
 
 ## Fixture structure and loading
 
