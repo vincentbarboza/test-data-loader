@@ -40,9 +40,7 @@ export function getConfig(): RuntimeConfig {
     );
   }
 
-  const dataTarget =
-    resolveDataTarget() ??
-    (isPlaywrightDiscoveryProcess() ? config.dataTargets[0] : undefined);
+  const dataTarget = process.env.dataTarget?.trim();
 
   if (!dataTarget) {
     throw new Error(
@@ -51,8 +49,7 @@ export function getConfig(): RuntimeConfig {
         '',
         `Allowed values: ${config.dataTargets.join(', ')}`,
         '',
-        `Example: dataTarget=${config.dataTargets[0]} npx playwright test`,
-        `Example: DATA_TARGET=${config.dataTargets[0]} npx playwright test`,
+        'Set the dataTarget environment variable before loading test data.',
       ].join('\n'),
     );
   }
@@ -71,40 +68,6 @@ export function getConfig(): RuntimeConfig {
     ...config,
     dataTarget,
   };
-}
-
-function resolveDataTarget(): string | undefined {
-  const candidates = [
-    process.env.dataTarget,
-    process.env.DATA_TARGET,
-    process.env.data_target,
-    process.env.npm_config_dataTarget,
-    process.env.npm_config_data_target,
-    process.env.npm_package_config_dataTarget,
-    process.env.npm_package_config_data_target,
-  ];
-
-  for (const candidate of candidates) {
-    const normalized = candidate?.trim();
-    if (normalized) {
-      return normalized;
-    }
-  }
-
-  return undefined;
-}
-
-function isPlaywrightDiscoveryProcess(): boolean {
-  if (process.env.TEST_WORKER_INDEX !== undefined) {
-    return false;
-  }
-
-  const args = process.argv.slice(2);
-  return (
-    args.includes('--list') ||
-    args.includes('test-server') ||
-    args.includes('test')
-  );
 }
 
 function normalizeDataPath(dataPath: string): string {

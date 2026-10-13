@@ -86,6 +86,7 @@ function normalizeLoaderPath(loaderPath: string): string {
   }
 
   const normalizedPath = loaderPath
+    .replace(/\\/g, '/')
     .replace(/^\/+/, '')
     .replace(/\/+$/, '');
 
