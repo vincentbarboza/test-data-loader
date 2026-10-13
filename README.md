@@ -66,7 +66,7 @@ DATA_TARGET=targetA npx playwright test
 npx playwright test --dataTarget=targetA
 ```
 
-Use another configured value, such as `targetB`, to load its matching fixtures. When Playwright is only listing tests with `--list` and no target was provided, the loader uses the first configured target so test files can be discovered without an error. This means test definitions that depend on fixture values during discovery use that first target. During normal test execution, a missing or invalid `dataTarget` still throws an error when a fixture is loaded.
+Use another configured value, such as `targetB`, to load its matching fixtures. Playwright imports test files in a discovery process before executing tests. If no target is set during this discovery, the loader temporarily uses the first configured target so the editor can discover tests without showing an error. The actual Playwright worker still requires a target and throws an error if it is missing or invalid. Test definitions that depend on fixture values during discovery use the first configured target.
 
 ## Fixture structure and loading
 

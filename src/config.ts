@@ -42,7 +42,7 @@ export function getConfig(): RuntimeConfig {
 
   const dataTarget =
     resolveDataTarget() ??
-    (isPlaywrightListMode() ? config.dataTargets[0] : undefined);
+    (isPlaywrightDiscoveryProcess() ? config.dataTargets[0] : undefined);
 
   if (!dataTarget) {
     throw new Error(
@@ -127,8 +127,17 @@ function resolveDataTarget(): string | undefined {
   return undefined;
 }
 
-function isPlaywrightListMode(): boolean {
-  return process.argv.includes('--list');
+function isPlaywrightDiscoveryProcess(): boolean {
+  if (process.env.TEST_WORKER_INDEX !== undefined) {
+    return false;
+  }
+
+  const args = process.argv.slice(2);
+  return (
+    args.includes('--list') ||
+    args.includes('test-server') ||
+    args.includes('test')
+  );
 }
 
 function normalizeDataPath(dataPath: string): string {
