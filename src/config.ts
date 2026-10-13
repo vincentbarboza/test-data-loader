@@ -53,7 +53,6 @@ export function getConfig(): RuntimeConfig {
         '',
         `Example: dataTarget=${config.dataTargets[0]} npx playwright test`,
         `Example: DATA_TARGET=${config.dataTargets[0]} npx playwright test`,
-        `Example: npx playwright test --dataTarget=${config.dataTargets[0]}`,
       ].join('\n'),
     );
   }
@@ -89,38 +88,6 @@ function resolveDataTarget(): string | undefined {
     const normalized = candidate?.trim();
     if (normalized) {
       return normalized;
-    }
-  }
-
-  const argv = process.argv.slice(2);
-
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
-
-    if (/^--dataTarget$/i.test(arg)) {
-      const nextValue = argv[i + 1]?.trim();
-      if (nextValue) {
-        return nextValue;
-      }
-      return undefined;
-    }
-
-    if (/^--data-target$/i.test(arg)) {
-      const nextValue = argv[i + 1]?.trim();
-      if (nextValue) {
-        return nextValue;
-      }
-      return undefined;
-    }
-
-    const optionMatch = arg.match(/^--dataTarget=(.+)$/i);
-    if (optionMatch) {
-      return optionMatch[1].trim();
-    }
-
-    const kebabMatch = arg.match(/^--data-target=(.+)$/i);
-    if (kebabMatch) {
-      return kebabMatch[1].trim();
     }
   }
 

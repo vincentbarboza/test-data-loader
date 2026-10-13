@@ -59,11 +59,10 @@ In Windows PowerShell:
 $env:dataTarget='targetA'; npx playwright test
 ```
 
-The loader also accepts the uppercase form `DATA_TARGET` and a CLI argument form when the environment is not exposed directly:
+The loader also accepts the uppercase form `DATA_TARGET`:
 
 ```bash
 DATA_TARGET=targetA npx playwright test
-npx playwright test --dataTarget=targetA
 ```
 
 Use another configured value, such as `targetB`, to load its matching fixtures. Playwright imports test files in a discovery process before executing tests. If no target is set during this discovery, the loader temporarily uses the first configured target so the editor can discover tests without showing an error. The actual Playwright worker still requires a target and throws an error if it is missing or invalid. Test definitions that depend on fixture values during discovery use the first configured target.
